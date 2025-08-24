@@ -10,13 +10,11 @@ root.geometry('400x300')
 root.title('Генератор ссылок')
 
 # выбор типа ссылки
-link_list: tuple = ('Telegram', 'Discord', 'Youtube') # варианты ссылок
-# TODO: other social media
-# TODO: README.md
+link_list: tuple = ('Telegram', 'Discord', 'Youtube', 'TikTok', 'Rutube', 'Bitly') # кортеж сервисов
 standart_link: StringVar = StringVar() # стандартное значение для списка
 standart_link.set(link_list[0])
 
-link_combobox: ttk.Combobox = ttk.Combobox(values=link_list, state='readonly', textvariable=standart_link, width=15, height=3)
+link_combobox: ttk.Combobox = ttk.Combobox(values=link_list, state='readonly', textvariable=standart_link, width=15, height=6)
 link_combobox.place(anchor=NW, relx=0.0, rely=0.0)
 
 youtube_list: tuple = ('Default', 'Shorts') # список для ютуба
@@ -28,11 +26,11 @@ youtube_combobox: ttk.Combobox = ttk.Combobox(values=youtube_list, state='readon
 
 def yt_def_shorts(event) -> None:
     link_type = link_combobox.get()
-
-    if link_type == 'Youtube':
+    # гребаный тернарный оператор чет не работает
+    if link_type == 'Youtube': # если выбран ютуб, то появляется второй список (кастыль)
         youtube_combobox.place(anchor=NE, relx=1.0, rely=0.0)
     else:
-        youtube_combobox.destroy()
+        youtube_combobox.destroy() 
 
 link_combobox.bind('<<ComboboxSelected>>', yt_def_shorts)
 
@@ -45,11 +43,13 @@ links_num.place(anchor=CENTER, relx=1.0, rely=0.5)
 
 # кнопка перезаписи
 rewrite_state: BooleanVar = BooleanVar()
-rewrite_button: ttk.Checkbutton = ttk.Checkbutton(text='Перезаписать?', variable=rewrite_state)
+rewrite_button: ttk.Checkbutton = ttk.Checkbutton(text='Перезаписать файл?', variable=rewrite_state)
 rewrite_button.place(anchor=SW, relx=0.0, rely=1.0)
 
 # кнопка генерации
 def gen_links_gui() -> None:
+    global root
+
     if int(links_num.get()) >= 5_000_000: # если слишком ного ссылок (мб это просто для моего пк много)
         yes_no = askyesno(title='Внимание!', message='Создатель не ручается за генерацию такого большого количества ссылок! Продолжить?')
     elif int(links_num.get()) == 0: # если пользователь поставил ноль
@@ -58,10 +58,14 @@ def gen_links_gui() -> None:
         yes_no = True
 
     if yes_no: # начало цикла
+        if youtube_combobox in root.winfo_children(): # (костыль) если тип ссылки ютуб, то проверяем тип ссылки ютуба
+            yt_type: str = youtube_combobox.get()
+        else:
+            yt_type: str = 'Default'
 
         start_time = time() # начало таймера
 
-        generate_links(int(links_num.get()), link_combobox.get(), rewrite_state.get(), youtube_combobox.get()) # генерация ссылок в файл
+        generate_links(int(links_num.get()), link_combobox.get(), rewrite_state.get(), yt_type) # генерация ссылок в файл
 
         gen_time = round(time() - start_time, 6) # время генерации
 
@@ -76,7 +80,7 @@ generate_button.place(anchor=SE, relx=1.0, rely=1.0)
 
 
 info_label: ttk.Label = ttk.Label(text='Количество ссылок')
-info_label.place(anchor=E, relx=1.0, rely=0.4)
+info_label.place(anchor=E, relx=0.99, rely=0.4)
 
 def main() -> None:
     root.mainloop()
